@@ -1,6 +1,12 @@
 <template>
-  <div class="full-width fixed no-user-select">
-    <h1>hello</h1>
+  <div class="no-user-select">
+    <el-row>
+      <el-button icon="el-icon-refresh-left" size="mini"></el-button>
+      <el-button icon="el-icon-refresh-right" size="mini"></el-button>
+      <el-button icon="el-icon-refresh" size="mini"></el-button>
+      <el-button icon="el-icon-zoom-in" size="mini"></el-button>
+      <el-button icon="el-icon-zoom-out" size="mini"></el-button>
+    </el-row>
   </div>
 </template>
 
@@ -14,9 +20,6 @@ export default {
 </script>
 
 <style scoped>
-.full-width {
-  width: 100vw;
-  height: 10vh;
-  background-color: red;
+#title {
 }
 </style>

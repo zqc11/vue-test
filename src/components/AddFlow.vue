@@ -1,68 +1,76 @@
 <template>
-  <div class="row margin-top">
-    <!-- 元素 -->
-    <draggable
-      class="col-2 fixed"
-      tag="div"
-      :list="items"
-      :group="{ name: 'addflow', pull: 'clone', put: false }"
-      @end="addNewNode"
-      drag-class="ghost"
-    >
-      <div
-        class="component-item no-user-select"
-        v-for="item in items"
-        :key="item.id"
-      >
-        {{ item.text }}
-      </div>
-    </draggable>
+  <div>
+    <el-row>
+      <el-col :span="24">
+        <Menu />
+      </el-col>
+    </el-row>
 
-    <!-- 画布 -->
-    <draggable
-      class="col-8 margin-left"
-      tag="div"
-      :list="list"
-      group="addflow"
-      draggable=".drag"
-      style="
-        border-style: solid;
-        width: 900px;
-        height: 500px;
-        overflow: auto;
-        background-color: yellow;
-      "
-    >
-      <canvas ref="canvas" height="1000" width="1000"></canvas>
-    </draggable>
+    <el-row :gutter="10">
+      <el-col :span="4" class="margin-10">
+        <!-- 元素 -->
+        <draggable
+          id="components"
+          tag="div"
+          :list="items"
+          :group="{ name: 'addflow', pull: 'clone', put: false}"
+          @end="addNewNode"
+          drag-class="ghost"
+        >
+          <!-- 展示元素 -->
+          <div
+            class="component-item no-user-select"
+            v-for="item in items"
+            :key="item.id"
+          >
+            {{ item.text }}
+          </div>
+        </draggable>
+      </el-col>
+
+      <el-col :span="19" class="margin-10">
+        <!-- 画布 -->
+        <draggable
+          id="canvas-wrapper"
+          tag="div"
+          :list="list"
+          group="addflow"
+          draggable=".drag"
+        >
+          <canvas ref="canvas" height="1000" width="1000"></canvas>
+        </draggable>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script>
 import draggable from "vuedraggable";
 import { Lassalle } from "../js/addflow.js";
+import mockdata from "../js/mockData";
+import Menu from './Menu.vue'
 export default {
   name: "AddFlow",
-  components: { draggable },
+  components: {
+    draggable,
+    Menu
+  },
 
   data() {
     return {
+      // flow实例对象
       flow: null,
+      // flow配置
       config: {
         canDrawNode: false,
+        gridSnap: false,
+        gridDraw: false,
+        fillStyle: "black",
       },
+      // 用来接收元素
       list: [],
-      items: [
-        {
-          id: "001",
-          x: 0,
-          y: 0,
-          w: 80,
-          h: 80,
-          text: "hello",
-          shapeFamily: "polygon",
-        },
-      ],
+      // 元素列表
+      items: mockdata,
     };
   },
 
@@ -89,7 +97,6 @@ export default {
         this.node.text
       );
       node.shapeFamily = this.node.shapeFamily;
-      node.isContextHandle = true;
       this.flow.endUpdate();
     },
     //刷新flow
@@ -114,16 +121,15 @@ export default {
     const canvas = this.$refs.canvas;
     this.flow = new Lassalle.Flow(canvas);
 
-    //禁止在画布中直接绘制Node
-    this.flow.canDrawNode = false;
-    this.flow.gridSnap = true;
-    this.flow.gridDraw = true;
-    this.flow.nodeModel.isContextHandle = true;
-    //设置画布填充颜色
-    this.flow.fillStyle = "yellow";
+    // 设置画布
+    this.flow.canDrawNode = false; //禁止在画布中直接绘制Node
+    this.flow.gridSnap = false; // 网格吸附
+    this.flow.gridDraw = false; // 显示网格
+    this.flow.fillStyle = "yellow"; //设置画布填充颜色
     this.flow.mouseSelection = "none";
 
     //设置节点样式
+    this.flow.nodeModel.isContextHandle = false; // 右上角句柄
     this.flow.nodeModel.strokeStyle = "black";
     this.flow.nodeModel.textFillStyle = "black";
     this.flow.nodeModel.lineWidth = 2;
@@ -144,51 +150,37 @@ export default {
 
     this.flow.refresh();
   },
-
-  watch: {},
-
-  computed: {
-  },
 };
 </script>
 
-<style>
+<style scoped>
+#components {
+  height: 90vh;
+  display: flex;
+  flex-flow: row wrap;
+  overflow: auto;
+  border-style: solid;
+}
 .component-item {
-  width: 80px;
-  height: 80px;
-  border-radius: 40px;
+  width: 60px;
+  height: 60px;
   border-color: black;
   border-style: solid;
   text-align: center;
   line-height: 80px;
-}
-.row {
-  display: flex;
-  flex-flow: row nowrap;
-  width: 100vw;
-  height: auto;
-}
-.col-3 {
-  width: 30%;
-}
-.col-2 {
-  width: 20%;
-}
-.col-7 {
-  width: 70%;
-}
-.col-8 {
-  width: 80%;
-}
-.margin-left {
-  position: absolute;
-  left: 20vw;
-}
-.margin-top {
-  position: absolute;
-  top: 10vh;
+  margin: 10px;
 }
 .ghost {
   background-color: red;
+}
+#canvas-wrapper {
+  border-style: solid;
+  width: 80vw;
+  height: 90vh;
+  overflow: auto;
+  background-color: yellow;
+}
+.margin-10 {
+  margin: 10px;
 }
 </style>
