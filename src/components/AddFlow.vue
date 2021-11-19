@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!-- 操作栏 -->
     <el-row>
       <el-col :span="24">
         <Menu />
@@ -13,7 +14,7 @@
           id="components"
           tag="div"
           :list="items"
-          :group="{ name: 'addflow', pull: 'clone', put: false}"
+          :group="{ name: 'addflow', pull: 'clone', put: false }"
           @end="addNewNode"
           drag-class="ghost"
         >
@@ -41,25 +42,48 @@
         </draggable>
       </el-col>
     </el-row>
+
+    <!-- 节点信息Dialog -->
+    <el-drawer
+      :title="selectedNode.text"
+      :before-close="handleClose"
+      :visible.sync="dialog"
+      direction="rtl"
+      custom-class="demo-drawer"
+      ref="drawer"
+      class="no-user-select"
+    >
+      <el-form :model="selectedNode" label-width="80px" @submit.native.prevent>
+        <el-form-item label="活动名称">
+          <el-input v-model="selectedNode.text"></el-input>
+        </el-form-item>
+      </el-form>
+    </el-drawer>
   </div>
 </template>
 
 <script>
 import draggable from "vuedraggable";
 import { Lassalle } from "../js/addflow.js";
-import mockdata from "../js/mockData";
-import Menu from './Menu.vue'
+import items from "../js/mockData";
+import Menu from "./Menu.vue";
 export default {
   name: "AddFlow",
   components: {
     draggable,
-    Menu
+    Menu,
   },
 
   data() {
     return {
       // flow实例对象
       flow: null,
+      // 节点信息框显示标志位
+      dialog: false,
+      // 当前被选中的Node
+      selectedNode: {
+        text: "",
+      },
       // flow配置
       config: {
         canDrawNode: false,
@@ -70,7 +94,7 @@ export default {
       // 用来接收元素
       list: [],
       // 元素列表
-      items: mockdata,
+      items: items,
     };
   },
 
@@ -99,24 +123,29 @@ export default {
       node.shapeFamily = this.node.shapeFamily;
       this.flow.endUpdate();
     },
-    //刷新flow
-    refresh() {
-      this.flow.refresh();
-    },
 
     //鼠标双击更改node文本信息
-    changeText() {
+    showInfo() {
       console.log("dbclick");
-      let nodes = this.flow.getSelectedItems();
-      if (nodes[0].getIsSelected()) {
-        nodes[0].text = "world";
+      this.selectedNode = this.getSelectedNode();
+      if (this.selectedNode) {
+        this.dialog = true;
       }
+    },
+    getSelectedNode() {
+      if (this.flow !== null) {
+        return this.flow.getSelectedItems()[0];
+      }
+    },
+    handleClose() {
+      console.log("close.");
+      this.dialog = false;
     },
   },
 
   mounted() {
     //添加鼠标双击node节点监听
-    document.addEventListener("dblclick", this.changeText, false);
+    document.addEventListener("dblclick", this.showInfo, false);
 
     const canvas = this.$refs.canvas;
     this.flow = new Lassalle.Flow(canvas);
@@ -135,10 +164,18 @@ export default {
     this.flow.nodeModel.lineWidth = 2;
     this.flow.nodeModel.textLineHeight = 15;
     this.flow.nodeModel.pins = [
+      [0, 25],
       [0, 50],
+      [0, 75],
+      [25, 0],
       [50, 0],
+      [75, 0],
+      [100, 25],
       [100, 50],
+      [100, 75],
+      [25, 100],
       [50, 100],
+      [75, 100],
     ];
 
     //设置线条类型
@@ -160,6 +197,7 @@ export default {
   flex-flow: row wrap;
   overflow: auto;
   border-style: solid;
+  background: greenyellow;
 }
 .component-item {
   width: 60px;
