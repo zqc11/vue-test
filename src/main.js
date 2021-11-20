@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import App from './App';
+import './js/shortcut.js';
 import {
     Row,
     Col,

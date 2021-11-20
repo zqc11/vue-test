@@ -1,14 +1,16 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-unused-vars */
 <template>
   <div>
     <!-- 操作栏 -->
     <el-row>
       <el-col :span="24">
-        <Menu />
+        <Menu @download="download" @upload="upload" @command="command" />
       </el-col>
     </el-row>
 
-    <el-row :gutter="10">
-      <el-col :span="4" class="margin-10">
+    <el-row :gutter="10" justify="space-around" type="flex" class="margin-10">
+      <el-col :span="4">
         <!-- 元素 -->
         <draggable
           id="components"
@@ -29,7 +31,7 @@
         </draggable>
       </el-col>
 
-      <el-col :span="19" class="margin-10">
+      <el-col :span="19">
         <!-- 画布 -->
         <draggable
           id="canvas-wrapper"
@@ -45,7 +47,7 @@
 
     <!-- 节点信息Dialog -->
     <el-drawer
-      :title="selectedNode.text"
+      title="详细信息"
       :before-close="handleClose"
       :visible.sync="dialog"
       direction="rtl"
@@ -67,6 +69,8 @@ import draggable from "vuedraggable";
 import { Lassalle } from "../js/addflow.js";
 import items from "../js/mockData";
 import Menu from "./Menu.vue";
+import JSONFlow from "../js/jsonflow.js";
+import key from "keymaster";
 export default {
   name: "AddFlow",
   components: {
@@ -95,6 +99,7 @@ export default {
       list: [],
       // 元素列表
       items: items,
+      json: {},
     };
   },
 
@@ -105,8 +110,8 @@ export default {
       console.log("Y坐标: ", event.originalEvent.layerY);
       let temp = this.list.pop();
       this.node = {
-        x: event.originalEvent.layerX - temp.w / 2,
-        y: event.originalEvent.layerY - temp.h / 2,
+        x: event.originalEvent.layerX / this.flow.zoom - temp.w / 2,
+        y: event.originalEvent.layerY / this.flow.zoom - temp.h / 2,
         h: temp.h,
         w: temp.w,
         text: temp.text,
@@ -127,10 +132,13 @@ export default {
     //鼠标双击更改node文本信息
     showInfo() {
       console.log("dbclick");
-      this.selectedNode = this.getSelectedNode();
-      if (this.selectedNode) {
-        this.dialog = true;
+      let temp = this.getSelectedNode();
+      if (temp === undefined) {
+        return;
       }
+      this.selectedNode = temp;
+      console.log(this.selectedNode);
+      this.dialog = true;
     },
     getSelectedNode() {
       if (this.flow !== null) {
@@ -140,13 +148,66 @@ export default {
     handleClose() {
       console.log("close.");
       this.dialog = false;
+      this.flow.refresh();
+    },
+    download() {
+      let data = JSONFlow.toJSON(this.flow);
+      this.json = data;
+      var a = document.createElement("a");
+      var file = new Blob([data], { type: "text/plain" });
+      a.href = URL.createObjectURL(file);
+      a.download = "addflow.json";
+      a.click();
+    },
+    upload(json) {
+      this.flow.clear();
+      JSONFlow.fromJSON(this.flow, json);
+    },
+    // 工具栏操作
+    command(type) {
+      if (type === "undo") {
+        this.flow.taskManager.undo();
+      }
+      if (type === "redo") {
+        this.flow.taskManager.redo();
+      }
+      if (type === "refresh") {
+        this.flow.refresh();
+      }
+      if (type === "delete") {
+        this.flow.deleteSel();
+      }
+      if (type === "zoom-in") {
+        this.flow.unselectAll();
+        this.flow.zoom += 0.1;
+        this.flow.refresh();
+      }
+      if (type === "zoom-out") {
+        this.flow.unselectAll();
+        this.flow.zoom -= 0.1;
+        this.flow.refresh();
+      }
     },
   },
 
-  mounted() {
-    //添加鼠标双击node节点监听
+  created() {
+    // 添加鼠标双击node节点监听
     document.addEventListener("dblclick", this.showInfo, false);
+    // 添加Ctrl+z快捷键
+    this.$shortcut.bind("ctrl+z", (_) => {
+      this.command("undo");
+    });
+    // 添加Ctrl+r快捷键
+    this.$shortcut.bind("ctrl+r", (_) => {
+      this.command("redo");
+    });
+    // 添加Delete快捷键
+    this.$shortcut.bind('delete', (_)=>{
+      this.command("delete");
+    });
+  },
 
+  mounted() {
     const canvas = this.$refs.canvas;
     this.flow = new Lassalle.Flow(canvas);
 
@@ -163,6 +224,7 @@ export default {
     this.flow.nodeModel.textFillStyle = "black";
     this.flow.nodeModel.lineWidth = 2;
     this.flow.nodeModel.textLineHeight = 15;
+    this.flow.pinSize = 5; //控制节点的大小
     this.flow.nodeModel.pins = [
       [0, 25],
       [0, 50],
@@ -213,12 +275,12 @@ export default {
 }
 #canvas-wrapper {
   border-style: solid;
-  width: 80vw;
+  width: 100%;
   height: 90vh;
   overflow: auto;
   background-color: yellow;
 }
 .margin-10 {
-  margin: 10px;
+  margin-top: 10px;
 }
 </style>

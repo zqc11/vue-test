@@ -11,6 +11,7 @@
     "core-js": "^3.6.5",
     "element-plus": "^1.2.0-beta.3",
     "element-ui": "^2.15.7",
+    "keymaster": "^1.6.2",
     "nanoid": "^3.1.29",
     "unplugin-vue-components": "^0.17.2",
     "vue": "^2.6.11",
@@ -39,7 +40,9 @@
     "parserOptions": {
       "parser": "babel-eslint"
     },
-    "rules": {}
+    "rules": {
+      "no-unused-vars":"off"
+    }
   },
   "browserslist": [
     "> 1%",
