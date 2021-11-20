@@ -52,12 +52,15 @@
       :visible.sync="dialog"
       direction="rtl"
       custom-class="demo-drawer"
-      ref="drawer"
       class="no-user-select"
     >
       <el-form :model="selectedNode" label-width="80px" @submit.native.prevent>
         <el-form-item label="活动名称">
-          <el-input v-model="selectedNode.text"></el-input>
+          <el-input
+            v-model="selectedNode.text"
+            @keydown.enter.native="handleClose"
+            ref="title"
+          ></el-input>
         </el-form-item>
       </el-form>
     </el-drawer>
@@ -66,11 +69,10 @@
 
 <script>
 import draggable from "vuedraggable";
+import Menu from "./Menu.vue";
 import { Lassalle } from "../js/addflow.js";
 import items from "../js/mockData";
-import Menu from "./Menu.vue";
 import JSONFlow from "../js/jsonflow.js";
-import key from "keymaster";
 export default {
   name: "AddFlow",
   components: {
@@ -99,15 +101,12 @@ export default {
       list: [],
       // 元素列表
       items: items,
-      json: {},
     };
   },
 
   methods: {
     //将新节点添加到flow中
     addNewNode(event) {
-      console.log("X坐标：", event.originalEvent.layerX);
-      console.log("Y坐标: ", event.originalEvent.layerY);
       let temp = this.list.pop();
       this.node = {
         x: event.originalEvent.layerX / this.flow.zoom - temp.w / 2,
@@ -131,13 +130,17 @@ export default {
 
     //鼠标双击更改node文本信息
     showInfo() {
-      console.log("dbclick");
+      // 自动聚焦到title上
+      setTimeout(() => {
+        this.$nextTick(() => {
+          this.$refs.title.focus();
+        });
+      }, 100);
       let temp = this.getSelectedNode();
       if (temp === undefined) {
         return;
       }
       this.selectedNode = temp;
-      console.log(this.selectedNode);
       this.dialog = true;
     },
     getSelectedNode() {
@@ -146,19 +149,19 @@ export default {
       }
     },
     handleClose() {
-      console.log("close.");
       this.dialog = false;
       this.flow.refresh();
     },
+    // 将flow下载成json文件
     download() {
-      let data = JSONFlow.toJSON(this.flow);
-      this.json = data;
+      let json = JSONFlow.toJSON(this.flow);
       var a = document.createElement("a");
-      var file = new Blob([data], { type: "text/plain" });
+      var file = new Blob([json], { type: "text/plain" });
       a.href = URL.createObjectURL(file);
       a.download = "addflow.json";
       a.click();
     },
+    // 从json文件中加载flow
     upload(json) {
       this.flow.clear();
       JSONFlow.fromJSON(this.flow, json);
@@ -191,8 +194,6 @@ export default {
   },
 
   created() {
-    // 添加鼠标双击node节点监听
-    document.addEventListener("dblclick", this.showInfo, false);
     // 添加Ctrl+z快捷键
     this.$shortcut.bind("ctrl+z", (_) => {
       this.command("undo");
@@ -202,12 +203,14 @@ export default {
       this.command("redo");
     });
     // 添加Delete快捷键
-    this.$shortcut.bind('delete', (_)=>{
+    this.$shortcut.bind("delete", (_) => {
       this.command("delete");
     });
   },
 
   mounted() {
+    // 添加鼠标双击node节点监听
+    document.addEventListener("dblclick", this.showInfo, false);
     const canvas = this.$refs.canvas;
     this.flow = new Lassalle.Flow(canvas);
 
