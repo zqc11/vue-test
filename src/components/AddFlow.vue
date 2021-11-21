@@ -3,13 +3,8 @@
 <template>
   <div>
     <!-- 操作栏 -->
-    <el-row>
-      <el-col :span="24">
-        <Menu @download="download" @upload="upload" @command="command" />
-      </el-col>
-    </el-row>
-
-    <el-row :gutter="10" justify="space-around" type="flex" class="margin-10">
+    <Menu @download="download" @upload="upload" @command="command" ref="menu"/>
+    <el-row :gutter="10" justify="center" type="flex" class="margin-10">
       <el-col :span="4">
         <!-- 元素 -->
         <draggable
@@ -46,24 +41,7 @@
     </el-row>
 
     <!-- 节点信息Dialog -->
-    <el-drawer
-      title="详细信息"
-      :before-close="handleClose"
-      :visible.sync="dialog"
-      direction="rtl"
-      custom-class="demo-drawer"
-      class="no-user-select"
-    >
-      <el-form :model="selectedNode" label-width="80px" @submit.native.prevent>
-        <el-form-item label="活动名称">
-          <el-input
-            v-model="selectedNode.text"
-            @keydown.enter.native="handleClose"
-            ref="title"
-          ></el-input>
-        </el-form-item>
-      </el-form>
-    </el-drawer>
+    <drawer-box :flow="flow" ref="drawer" />
   </div>
 </template>
 
@@ -73,11 +51,13 @@ import Menu from "./Menu.vue";
 import { Lassalle } from "../js/addflow.js";
 import items from "../js/mockData";
 import JSONFlow from "../js/jsonflow.js";
+import DrawerBox from "./DrawerBox.vue";
 export default {
   name: "AddFlow",
   components: {
     draggable,
     Menu,
+    DrawerBox,
   },
 
   data() {
@@ -108,49 +88,25 @@ export default {
     //将新节点添加到flow中
     addNewNode(event) {
       let temp = this.list.pop();
-      this.node = {
-        x: event.originalEvent.layerX / this.flow.zoom - temp.w / 2,
-        y: event.originalEvent.layerY / this.flow.zoom - temp.h / 2,
-        h: temp.h,
-        w: temp.w,
-        text: temp.text,
-        shapeFamily: temp.shapeFamily,
-      };
-      this.flow.beginUpdate();
-      let node = this.flow.addNode(
-        this.node.x,
-        this.node.y,
-        this.node.w,
-        this.node.h,
-        this.node.text
+      temp.x = Math.round(
+        event.originalEvent.layerX / this.flow.zoom - temp.w / 2
       );
-      node.shapeFamily = this.node.shapeFamily;
+      temp.y = Math.round(
+        event.originalEvent.layerY / this.flow.zoom - temp.h / 2
+      );
+      this.flow.beginUpdate();
+      let node = this.flow.addNode(temp.x, temp.y, temp.w, temp.h, temp.text);
+      if (temp.polygon) {
+        console.log(temp.polygon);
+        node.polygon = temp.polygon;
+      }
+      node.shapeFamily = temp.shapeFamily;
       this.flow.endUpdate();
     },
 
     //鼠标双击更改node文本信息
     showInfo() {
-      // 自动聚焦到title上
-      setTimeout(() => {
-        this.$nextTick(() => {
-          this.$refs.title.focus();
-        });
-      }, 100);
-      let temp = this.getSelectedNode();
-      if (temp === undefined) {
-        return;
-      }
-      this.selectedNode = temp;
-      this.dialog = true;
-    },
-    getSelectedNode() {
-      if (this.flow !== null) {
-        return this.flow.getSelectedItems()[0];
-      }
-    },
-    handleClose() {
-      this.dialog = false;
-      this.flow.refresh();
+      this.$refs.drawer.showInfo();
     },
     // 将flow下载成json文件
     download() {
@@ -191,6 +147,15 @@ export default {
         this.flow.refresh();
       }
     },
+    // 鼠标滚轮事件
+    // scroll(e){
+    //   let direct = e.wheelDeltaY;
+    //   if(direct > 0){
+    //     this.$refs.menu.zoomIn();
+    //   }else{
+    //     this.$refs.menu.zoomOut();
+    //   }
+    // }
   },
 
   created() {
@@ -206,42 +171,45 @@ export default {
     this.$shortcut.bind("delete", (_) => {
       this.command("delete");
     });
+    // 添加鼠标双击node节点监听
+    document.addEventListener("dblclick", this.showInfo, false);
+    // 添加鼠标滚轮事件
+    // document.addEventListener("wheel", this.scroll, {passive: false, useCapture: false});
   },
 
   mounted() {
-    // 添加鼠标双击node节点监听
-    document.addEventListener("dblclick", this.showInfo, false);
     const canvas = this.$refs.canvas;
     this.flow = new Lassalle.Flow(canvas);
 
     // 设置画布
     this.flow.canDrawNode = false; //禁止在画布中直接绘制Node
-    this.flow.gridSnap = false; // 网格吸附
+    this.flow.gridSnap = true; // 网格吸附
     this.flow.gridDraw = false; // 显示网格
+    this.flow.gridSizeX = 10; // 网格大小
+    this.flow.gridSizeY = 10; // 网格大小
     this.flow.fillStyle = "yellow"; //设置画布填充颜色
-    this.flow.mouseSelection = "none";
-
+    this.flow.mouseSelection = "selection";
     //设置节点样式
     this.flow.nodeModel.isContextHandle = false; // 右上角句柄
     this.flow.nodeModel.strokeStyle = "black";
     this.flow.nodeModel.textFillStyle = "black";
     this.flow.nodeModel.lineWidth = 2;
     this.flow.nodeModel.textLineHeight = 15;
-    this.flow.pinSize = 5; //控制节点的大小
-    this.flow.nodeModel.pins = [
-      [0, 25],
-      [0, 50],
-      [0, 75],
-      [25, 0],
-      [50, 0],
-      [75, 0],
-      [100, 25],
-      [100, 50],
-      [100, 75],
-      [25, 100],
-      [50, 100],
-      [75, 100],
-    ];
+    this.flow.pinSize = 10; //控制节点的大小
+    // this.flow.nodeModel.pins = [
+    //   [0, 25],
+    //   [0, 50],
+    //   [0, 75],
+    //   [25, 0],
+    //   [50, 0],
+    //   [75, 0],
+    //   [100, 25],
+    //   [100, 50],
+    //   [100, 75],
+    //   [25, 100],
+    //   [50, 100],
+    //   [75, 100],
+    // ];
 
     //设置线条类型
     this.flow.linkModel.strokeStyle = "black";
@@ -258,15 +226,17 @@ export default {
 <style scoped>
 #components {
   height: 90vh;
+  width: 100%;
   display: flex;
   flex-flow: row wrap;
   overflow: auto;
+  justify-content: center;
   border-style: solid;
   background: greenyellow;
 }
 .component-item {
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   border-color: black;
   border-style: solid;
   text-align: center;

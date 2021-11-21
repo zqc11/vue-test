@@ -5,8 +5,9 @@ export default [
         y: 0,
         w: 80,
         h: 80,
-        text: "hello",
-        shapeFamily: "polygon",
+        text: "矩形",
+        shapeFamily: "rectangle",
+        img: ""
     },
     {
         id: "002",
@@ -14,8 +15,10 @@ export default [
         y: 0,
         w: 80,
         h: 80,
-        text: "world",
+        text: "losange",
         shapeFamily: "polygon",
+        polygon: [[0, 50], [50, 0], [100, 50], [50, 100]],
+        img: ""
     },
     {
         id: "003",
@@ -23,8 +26,9 @@ export default [
         y: 0,
         w: 80,
         h: 80,
-        text: "hello",
-        shapeFamily: "polygon",
+        text: "circle",
+        shapeFamily: "ellipse",
+        img: ""
     },
     {
         id: "004",
@@ -32,8 +36,10 @@ export default [
         y: 0,
         w: 80,
         h: 80,
-        text: "hello",
+        text: "四边形",
         shapeFamily: "polygon",
+        polygon: [[10, 0], [60, 0], [50, 40], [0, 40]],
+        img: ""
     },
     {
         id: "005",
@@ -43,6 +49,7 @@ export default [
         h: 80,
         text: "hello",
         shapeFamily: "polygon",
+        img: ""
     },
     {
         id: "006",
@@ -52,6 +59,7 @@ export default [
         h: 80,
         text: "hello",
         shapeFamily: "polygon",
+        img: ""
     },
     {
         id: "007",
@@ -61,6 +69,7 @@ export default [
         h: 80,
         text: "hello",
         shapeFamily: "polygon",
+        img: ""
     },
     {
         id: "008",
@@ -70,6 +79,7 @@ export default [
         h: 80,
         text: "hello",
         shapeFamily: "polygon",
+        img: ""
     },
     {
         id: "009",
@@ -79,6 +89,7 @@ export default [
         h: 80,
         text: "hello",
         shapeFamily: "polygon",
+        img: ""
     },
     {
         id: "010",
@@ -88,5 +99,6 @@ export default [
         h: 80,
         text: "hello",
         shapeFamily: "polygon",
+        img: ""
     },
 ]

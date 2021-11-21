@@ -24,7 +24,7 @@ export default {
             if (this.node.image !== undefined && this.node.image !== null) {
                 this.node.srcImage = this.image.src;
                 this.node.image = null;
-            };
+            }
 
             this.toJSON = function () {
                 var propertyName;
@@ -46,7 +46,7 @@ export default {
                 }
                 return this.node;
             };
-        };
+        }
 
         function JsonLink(_link) {
             this.link = _link.clone();
@@ -69,7 +69,7 @@ export default {
                 }
                 return this.link;
             };
-        };
+        }
 
 
         jsonItems = [];
@@ -170,7 +170,7 @@ export default {
             if (model.textLineHeight !== undefined) {
                 node.textLineHeight = model.textLineHeight;
             }
-        };
+        }
 
         function copyLinkProperties(link, model) {
             if (model.strokeStyle !== undefined) {
@@ -224,7 +224,7 @@ export default {
             if (model.points !== undefined) {
                 link.points = model.points.slice();
             }
-        };
+        }
 
         if (jsonData === undefined || jsonData === null || jsonData === '') {
             return;
