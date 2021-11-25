@@ -1,8 +1,8 @@
 <template>
   <div>
     <Header/>
-      <h2>hello world</h2>
-      <Footer/>
+    <h2>hello world</h2>
+    <Footer/>
   </div>
 </template>
 
