@@ -7,7 +7,7 @@ export default [
         h: 80,
         text: "矩形",
         shapeFamily: "rectangle",
-        img: ""
+        img: "https://img1.baidu.com/it/u=3122136587,3938996930&fm=26&fmt=auto"
     },
     {
         id: "002",
@@ -18,7 +18,8 @@ export default [
         text: "losange",
         shapeFamily: "polygon",
         polygon: [[0, 50], [50, 0], [100, 50], [50, 100]],
-        img: ""
+        img: "https://img1.baidu.com/it/u=3122136587,3938996930&fm=26&fmt=auto",
+        pins:[],
     },
     {
         id: "003",
@@ -28,7 +29,7 @@ export default [
         h: 80,
         text: "circle",
         shapeFamily: "ellipse",
-        img: ""
+        img: "https://img1.baidu.com/it/u=3122136587,3938996930&fm=26&fmt=auto"
     },
     {
         id: "004",
@@ -39,7 +40,8 @@ export default [
         text: "四边形",
         shapeFamily: "polygon",
         polygon: [[10, 0], [60, 0], [50, 40], [0, 40]],
-        img: ""
+        img: "https://img1.baidu.com/it/u=3122136587,3938996930&fm=26&fmt=auto",
+        pins:[],
     },
     {
         id: "005",
@@ -49,7 +51,7 @@ export default [
         h: 80,
         text: "hello",
         shapeFamily: "polygon",
-        img: ""
+        img: "https://img1.baidu.com/it/u=3122136587,3938996930&fm=26&fmt=auto"
     },
     {
         id: "006",
@@ -59,7 +61,7 @@ export default [
         h: 80,
         text: "hello",
         shapeFamily: "polygon",
-        img: ""
+        img: "https://img1.baidu.com/it/u=3122136587,3938996930&fm=26&fmt=auto"
     },
     {
         id: "007",
@@ -69,7 +71,7 @@ export default [
         h: 80,
         text: "hello",
         shapeFamily: "polygon",
-        img: ""
+        img: "https://img1.baidu.com/it/u=3122136587,3938996930&fm=26&fmt=auto"
     },
     {
         id: "008",
@@ -79,7 +81,7 @@ export default [
         h: 80,
         text: "hello",
         shapeFamily: "polygon",
-        img: ""
+        img: "https://img1.baidu.com/it/u=3122136587,3938996930&fm=26&fmt=auto"
     },
     {
         id: "009",
@@ -89,7 +91,7 @@ export default [
         h: 80,
         text: "hello",
         shapeFamily: "polygon",
-        img: ""
+        img: "https://img1.baidu.com/it/u=3122136587,3938996930&fm=26&fmt=auto"
     },
     {
         id: "010",
@@ -99,6 +101,6 @@ export default [
         h: 80,
         text: "hello",
         shapeFamily: "polygon",
-        img: ""
+        img: "https://img1.baidu.com/it/u=3122136587,3938996930&fm=26&fmt=auto"
     },
 ]

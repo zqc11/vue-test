@@ -3,30 +3,33 @@
 <template>
   <div>
     <!-- 操作栏 -->
-    <Menu @download="download" @upload="upload" @command="command" ref="menu"/>
+    <Menu @download="download" @upload="upload" @command="command" ref="menu" />
+    <el-divider></el-divider>
     <el-row :gutter="10" justify="center" type="flex" class="margin-10">
       <el-col :span="4">
         <!-- 元素 -->
         <draggable
           id="components"
           tag="div"
-          :list="items"
+          :list="elements"
           :group="{ name: 'addflow', pull: 'clone', put: false }"
+          :move="moveNode"
           @end="addNewNode"
           drag-class="ghost"
+          :sort="false"
         >
           <!-- 展示元素 -->
           <div
             class="component-item no-user-select"
-            v-for="item in items"
+            v-for="item in elements"
             :key="item.id"
           >
-            {{ item.text }}
+            <img :src="item.img" :alt="item.shapeFamily" style="width: 80px" />
           </div>
         </draggable>
       </el-col>
 
-      <el-col :span="19">
+      <el-col :span="20">
         <!-- 画布 -->
         <draggable
           id="canvas-wrapper"
@@ -35,7 +38,7 @@
           group="addflow"
           draggable=".drag"
         >
-          <canvas ref="canvas" height="1000" width="1000"></canvas>
+          <canvas ref="canvas" height="800" width="800"></canvas>
         </draggable>
       </el-col>
     </el-row>
@@ -48,9 +51,9 @@
 <script>
 import draggable from "vuedraggable";
 import Menu from "./Menu.vue";
-import { Lassalle } from "../js/addflow.js";
-import items from "../js/mockData";
-import JSONFlow from "../js/jsonflow.js";
+import { Lassalle } from "../../../js/addflow.js";
+import elements from "../../../js/mockData";
+import JSONFlow from "../../../js/jsonflow.js";
 import DrawerBox from "./DrawerBox.vue";
 export default {
   name: "AddFlow",
@@ -80,7 +83,15 @@ export default {
       // 用来接收元素
       list: [],
       // 元素列表
-      items: items,
+      elements: elements,
+      // 所有的节点
+      nodes: [
+        {
+          node: {},
+          id: "",
+          checher: "",
+        },
+      ],
     };
   },
 
@@ -88,20 +99,45 @@ export default {
     //将新节点添加到flow中
     addNewNode(event) {
       let temp = this.list.pop();
-      temp.x = Math.round(
-        event.originalEvent.layerX / this.flow.zoom - temp.w / 2
-      );
-      temp.y = Math.round(
-        event.originalEvent.layerY / this.flow.zoom - temp.h / 2
-      );
+      temp.x = event.originalEvent.layerX / this.flow.zoom - temp.w / 2;
+      temp.y = event.originalEvent.layerY / this.flow.zoom - temp.h / 2;
       this.flow.beginUpdate();
       let node = this.flow.addNode(temp.x, temp.y, temp.w, temp.h, temp.text);
       if (temp.polygon) {
-        console.log(temp.polygon);
         node.polygon = temp.polygon;
       }
       node.shapeFamily = temp.shapeFamily;
       this.flow.endUpdate();
+      this.updateNodes();
+    },
+
+    // 节点移动过程中
+    moveNode(source, event) {
+      let item = source.draggedContext.element;
+      let x = event.layerX / this.flow.zoom - item.w / 2;
+      let y = event.layerY / this.flow.zoom - item.h / 2;
+      for (let node of this.nodes) {
+        if (node.x == x) {
+          console.log(x);
+          return;
+        }
+        if (node.y == y) {
+          console.log(y);
+          return;
+        }
+      }
+    },
+
+    // 更新nodes
+    updateNodes() {
+      console.log("node");
+      let items = this.flow.getItems();
+      this.nodes = [];
+      for (let item of items) {
+        if (this.flow.isNode(item)) {
+          this.nodes.push(item);
+        }
+      }
     },
 
     //鼠标双击更改node文本信息
@@ -131,6 +167,7 @@ export default {
         this.flow.taskManager.redo();
       }
       if (type === "refresh") {
+        this.flow.zoom = 1;
         this.flow.refresh();
       }
       if (type === "delete") {
@@ -148,14 +185,12 @@ export default {
       }
     },
     // 鼠标滚轮事件
-    // scroll(e){
-    //   let direct = e.wheelDeltaY;
-    //   if(direct > 0){
-    //     this.$refs.menu.zoomIn();
-    //   }else{
-    //     this.$refs.menu.zoomOut();
-    //   }
-    // }
+    scroll(e) {
+      if (e.button === 1) {
+        console.log(e);
+        console.log("中键按下");
+      }
+    },
   },
 
   created() {
@@ -173,8 +208,12 @@ export default {
     });
     // 添加鼠标双击node节点监听
     document.addEventListener("dblclick", this.showInfo, false);
-    // 添加鼠标滚轮事件
-    // document.addEventListener("wheel", this.scroll, {passive: false, useCapture: false});
+    document.onmousedown = this.scroll;
+    document.onmousemove = (e) => {
+      if (e.button === 1) {
+        console.log(e);
+      }
+    };
   },
 
   mounted() {
@@ -187,8 +226,9 @@ export default {
     this.flow.gridDraw = false; // 显示网格
     this.flow.gridSizeX = 10; // 网格大小
     this.flow.gridSizeY = 10; // 网格大小
-    this.flow.fillStyle = "yellow"; //设置画布填充颜色
-    this.flow.mouseSelection = "selection";
+    // this.flow.fillStyle = "yellow"; //设置画布填充颜色
+    this.flow.mouseSelection = "selection"; // 设置鼠标动作方式
+
     //设置节点样式
     this.flow.nodeModel.isContextHandle = false; // 右上角句柄
     this.flow.nodeModel.strokeStyle = "black";
@@ -196,27 +236,27 @@ export default {
     this.flow.nodeModel.lineWidth = 2;
     this.flow.nodeModel.textLineHeight = 15;
     this.flow.pinSize = 10; //控制节点的大小
-    // this.flow.nodeModel.pins = [
-    //   [0, 25],
-    //   [0, 50],
-    //   [0, 75],
-    //   [25, 0],
-    //   [50, 0],
-    //   [75, 0],
-    //   [100, 25],
-    //   [100, 50],
-    //   [100, 75],
-    //   [25, 100],
-    //   [50, 100],
-    //   [75, 100],
-    // ];
+    this.flow.nodeModel.pins = [
+      [0, 25],
+      [0, 50],
+      [0, 75],
+      [25, 0],
+      [50, 0],
+      [75, 0],
+      [100, 25],
+      [100, 50],
+      [100, 75],
+      [25, 100],
+      [50, 100],
+      [75, 100],
+    ];
 
     //设置线条类型
     this.flow.linkModel.strokeStyle = "black";
     this.flow.linkModel.textFillStyle = "black";
     this.flow.linkModel.lineStyle = "orthogonal";
     this.flow.linkModel.lineWidth = 2;
-    this.flow.linkModel.isShadowed = true;
+    this.flow.linkModel.isShadowed = true; // 是否有阴影
 
     this.flow.refresh();
   },
@@ -225,14 +265,13 @@ export default {
 
 <style scoped>
 #components {
-  height: 90vh;
+  height: 80vh;
   width: 100%;
   display: flex;
   flex-flow: row wrap;
   overflow: auto;
   justify-content: center;
   border-style: solid;
-  background: greenyellow;
 }
 .component-item {
   width: 80px;
@@ -249,9 +288,8 @@ export default {
 #canvas-wrapper {
   border-style: solid;
   width: 100%;
-  height: 90vh;
+  height: 80vh;
   overflow: auto;
-  background-color: yellow;
 }
 .margin-10 {
   margin-top: 10px;
